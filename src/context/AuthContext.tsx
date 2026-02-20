@@ -13,6 +13,8 @@ const AuthContext = createContext<AuthState>({
 
 export const useAuth = () => useContext(AuthContext);
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<AuthState>({
     isAuthenticated: false,
@@ -20,6 +22,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   useEffect(() => {
+    // If no backend URL is configured, skip auth and allow preview
+    if (!BACKEND_URL) {
+      console.warn("[Auth] No VITE_BACKEND_URL set — running in preview mode without authentication.");
+      setAuthToken("preview-mode");
+      setState({ isAuthenticated: true, isLoading: false });
+      return;
+    }
+
     const verify = async () => {
       const result = await checkSession();
       if (result?.token) {
@@ -27,7 +37,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setState({ isAuthenticated: true, isLoading: false });
       } else {
         setState({ isAuthenticated: false, isLoading: false });
-        // Redirect to backend login
         window.location.href = getLoginUrl();
       }
     };

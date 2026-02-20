@@ -1,6 +1,6 @@
 import type { Book, BookStatus, GoogleBooksResponse } from "@/types/book";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
 const GOOGLE_BOOKS_API = "https://www.googleapis.com/books/v1/volumes";
 
 let authToken: string | null = null;
@@ -11,19 +11,48 @@ export const setAuthToken = (token: string | null) => {
 
 export const getAuthToken = () => authToken;
 
+const isPreviewMode = () => !import.meta.env.VITE_BACKEND_URL;
+
 const authHeaders = (): HeadersInit => ({
   "Content-Type": "application/json",
   ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
 });
 
+// --- In-memory mock store for preview mode ---
+let mockBooks: Book[] = [];
+let mockIdCounter = 1;
+
+function getMockBooks(): Book[] {
+  return [...mockBooks];
+}
+
+function addMockBook(book: Omit<Book, "id">): Book {
+  const newBook: Book = { ...book, id: String(mockIdCounter++) };
+  mockBooks.push(newBook);
+  return newBook;
+}
+
+function updateMockBook(id: string, data: { status: BookStatus; lentTo?: string }): Book {
+  const idx = mockBooks.findIndex((b) => b.id === id);
+  if (idx === -1) throw new Error("Book not found");
+  mockBooks[idx] = { ...mockBooks[idx], ...data };
+  return mockBooks[idx];
+}
+
+function deleteMockBook(id: string): void {
+  mockBooks = mockBooks.filter((b) => b.id !== id);
+}
+
+// --- API functions ---
+
 export async function checkSession(): Promise<{ token: string } | null> {
+  if (isPreviewMode()) return { token: "preview-mode" };
   try {
     const res = await fetch(`${BACKEND_URL}/check-session`, {
       credentials: "include",
     });
     if (!res.ok) return null;
-    const data = await res.json();
-    return data;
+    return res.json();
   } catch {
     return null;
   }
@@ -34,6 +63,7 @@ export function getLoginUrl(): string {
 }
 
 export async function fetchBooks(): Promise<Book[]> {
+  if (isPreviewMode()) return getMockBooks();
   const res = await fetch(`${BACKEND_URL}/api/app-library/books`, {
     headers: authHeaders(),
   });
@@ -48,6 +78,7 @@ export async function saveBook(book: {
   thumbnailUrl: string;
   status: BookStatus;
 }): Promise<Book> {
+  if (isPreviewMode()) return addMockBook(book);
   const res = await fetch(`${BACKEND_URL}/api/app-library/books`, {
     method: "POST",
     headers: authHeaders(),
@@ -61,6 +92,7 @@ export async function updateBook(
   bookId: string,
   data: { status: BookStatus; lentTo?: string }
 ): Promise<Book> {
+  if (isPreviewMode()) return updateMockBook(bookId, data);
   const res = await fetch(`${BACKEND_URL}/api/app-library/books/${bookId}`, {
     method: "PUT",
     headers: authHeaders(),
@@ -71,6 +103,7 @@ export async function updateBook(
 }
 
 export async function deleteBook(bookId: string): Promise<void> {
+  if (isPreviewMode()) return deleteMockBook(bookId);
   const res = await fetch(`${BACKEND_URL}/api/app-library/books/${bookId}`, {
     method: "DELETE",
     headers: authHeaders(),
