@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Book, BookStatus, STATUS_LABELS } from "@/types/book";
-import { updateBook, deleteBook } from "@/lib/api";
+import { deleteBook, updateBook } from "@/lib/api";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,12 +30,17 @@ interface BookModalProps {
 
 const BookModal = ({ book, open, onClose }: BookModalProps) => {
   const queryClient = useQueryClient();
-  const [status, setStatus] = useState<BookStatus>(book?.status || "want_to_read");
+  const [status, setStatus] = useState<BookStatus>(
+    book?.status || "want_to_read",
+  );
   const [lentTo, setLentTo] = useState(book?.lentTo || "");
 
   const updateMutation = useMutation({
     mutationFn: () =>
-      updateBook(book!.id, { status, lentTo: status === "lent" ? lentTo : undefined }),
+      updateBook(book!.id, {
+        status,
+        lentTo: status === "lent" ? lentTo : undefined,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["books"] });
       toast({ title: "Book updated!" });
@@ -54,11 +59,13 @@ const BookModal = ({ book, open, onClose }: BookModalProps) => {
     onError: () => toast({ title: "Failed to delete", variant: "destructive" }),
   });
 
-  // Sync state when book changes
-  if (book && status !== book.status && !updateMutation.isPending) {
-    setStatus(book.status);
-    setLentTo(book.lentTo || "");
-  }
+  // Sync state when book changes or modal opens
+  useEffect(() => {
+    if (book && open) {
+      setStatus(book.status);
+      setLentTo(book.lentTo || "");
+    }
+  }, [book, open]);
 
   if (!book) return null;
 
@@ -83,11 +90,18 @@ const BookModal = ({ book, open, onClose }: BookModalProps) => {
           <div className="flex-1 space-y-4">
             <div className="space-y-2">
               <Label>Status</Label>
-              <Select value={status} onValueChange={(v) => setStatus(v as BookStatus)}>
+              <Select
+                value={status}
+                onValueChange={(v) => setStatus(v as BookStatus)}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent
+                  position="popper"
+                  side="bottom"
+                  sideOffset={4}
+                >
                   {Object.entries(STATUS_LABELS).map(([value, label]) => (
                     <SelectItem key={value} value={value}>
                       {label}

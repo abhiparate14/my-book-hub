@@ -32,7 +32,10 @@ function addMockBook(book: Omit<Book, "id">): Book {
   return newBook;
 }
 
-function updateMockBook(id: string, data: { status: BookStatus; lentTo?: string }): Book {
+function updateMockBook(
+  id: string,
+  data: { status: BookStatus; lentTo?: string },
+): Book {
   const idx = mockBooks.findIndex((b) => b.id === id);
   if (idx === -1) throw new Error("Book not found");
   mockBooks[idx] = { ...mockBooks[idx], ...data };
@@ -44,23 +47,6 @@ function deleteMockBook(id: string): void {
 }
 
 // --- API functions ---
-
-export async function checkSession(): Promise<{ token: string } | null> {
-  if (isPreviewMode()) return { token: "preview-mode" };
-  try {
-    const res = await fetch(`${BACKEND_URL}/check-session`, {
-      credentials: "include",
-    });
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
-}
-
-export function getLoginUrl(): string {
-  return `${BACKEND_URL}/login`;
-}
 
 export async function fetchBooks(): Promise<Book[]> {
   if (isPreviewMode()) return getMockBooks();
@@ -90,7 +76,7 @@ export async function saveBook(book: {
 
 export async function updateBook(
   bookId: string,
-  data: { status: BookStatus; lentTo?: string }
+  data: { status: BookStatus; lentTo?: string },
 ): Promise<Book> {
   if (isPreviewMode()) return updateMockBook(bookId, data);
   const res = await fetch(`${BACKEND_URL}/api/app-library/books/${bookId}`, {
@@ -111,9 +97,11 @@ export async function deleteBook(bookId: string): Promise<void> {
   if (!res.ok) throw new Error("Failed to delete book");
 }
 
-export async function searchGoogleBooks(query: string): Promise<GoogleBooksResponse> {
+export async function searchGoogleBooks(
+  query: string,
+): Promise<GoogleBooksResponse> {
   const res = await fetch(
-    `${GOOGLE_BOOKS_API}?q=${encodeURIComponent(query)}&maxResults=12`
+    `${GOOGLE_BOOKS_API}?q=${encodeURIComponent(query)}&maxResults=12`,
   );
   if (!res.ok) throw new Error("Failed to search books");
   return res.json();
