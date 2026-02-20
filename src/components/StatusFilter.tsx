@@ -1,4 +1,4 @@
-import { BookStatus, STATUS_LABELS } from "@/types/book";
+import { Book, BookStatus } from "@/types/book";
 import { cn } from "@/lib/utils";
 
 const FILTERS: Array<{ value: BookStatus | "all"; label: string }> = [
@@ -12,9 +12,13 @@ const FILTERS: Array<{ value: BookStatus | "all"; label: string }> = [
 interface StatusFilterProps {
   active: BookStatus | "all";
   onChange: (filter: BookStatus | "all") => void;
+  books: Book[];
 }
 
-const StatusFilter = ({ active, onChange }: StatusFilterProps) => {
+const StatusFilter = ({ active, onChange, books }: StatusFilterProps) => {
+  const getCount = (value: BookStatus | "all") =>
+    value === "all" ? books.length : books.filter((b) => b.status === value).length;
+
   return (
     <div className="flex flex-wrap gap-2">
       {FILTERS.map((f) => (
@@ -28,7 +32,7 @@ const StatusFilter = ({ active, onChange }: StatusFilterProps) => {
               : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
           )}
         >
-          {f.label}
+          {f.label}({getCount(f.value)})
         </button>
       ))}
     </div>

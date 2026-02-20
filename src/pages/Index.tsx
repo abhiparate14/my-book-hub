@@ -86,7 +86,7 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <StatusFilter active={filter} onChange={setFilter} />
+          <StatusFilter active={filter} onChange={setFilter} books={books} />
           <SortSelect value={sort} onChange={setSort} />
         </div>
 
