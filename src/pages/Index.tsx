@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchBooks, deleteBook } from "@/lib/api";
 import { Book, BookStatus } from "@/types/book";
@@ -6,12 +6,15 @@ import BookCard from "@/components/BookCard";
 import BookModal from "@/components/BookModal";
 import StatusFilter from "@/components/StatusFilter";
 import SearchPanel from "@/components/SearchPanel";
+import SortSelect, { SortOption } from "@/components/SortSelect";
+import ThemeToggle from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Search, BookOpen } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
   const [filter, setFilter] = useState<BookStatus | "all">("all");
+  const [sort, setSort] = useState<SortOption>("title");
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -31,8 +34,22 @@ const Index = () => {
     onError: () => toast({ title: "Failed to delete", variant: "destructive" }),
   });
 
-  const filteredBooks =
-    filter === "all" ? books : books.filter((b) => b.status === filter);
+  const filteredAndSorted = useMemo(() => {
+    const filtered = filter === "all" ? books : books.filter((b) => b.status === filter);
+    return [...filtered].sort((a, b) => {
+      switch (sort) {
+        case "title":
+          return a.title.localeCompare(b.title);
+        case "author":
+          return (a.authors?.[0] || "").localeCompare(b.authors?.[0] || "");
+        case "date":
+          // newest first (by id as proxy since mock uses incrementing ids)
+          return Number(b.id) - Number(a.id);
+        default:
+          return 0;
+      }
+    });
+  }, [books, filter, sort]);
 
   const handleBookClick = (book: Book) => {
     setSelectedBook(book);
@@ -55,24 +72,28 @@ const Index = () => {
               My Library
             </h1>
           </div>
-          <Button onClick={() => setSearchOpen(true)} className="gap-2">
-            <Search className="h-4 w-4" />
-            <span className="hidden sm:inline">Search Books</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button onClick={() => setSearchOpen(true)} className="gap-2">
+              <Search className="h-4 w-4" />
+              <span className="hidden sm:inline">Search Books</span>
+            </Button>
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-6">
-        <div className="mb-6">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <StatusFilter active={filter} onChange={setFilter} />
+          <SortSelect value={sort} onChange={setSort} />
         </div>
 
         {isLoading ? (
           <div className="flex justify-center py-20">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
           </div>
-        ) : filteredBooks.length === 0 ? (
+        ) : filteredAndSorted.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
             <BookOpen className="mb-4 h-16 w-16 text-muted-foreground/40" />
             <h2 className="font-display text-xl font-semibold text-muted-foreground">
@@ -92,7 +113,7 @@ const Index = () => {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {filteredBooks.map((book) => (
+            {filteredAndSorted.map((book) => (
               <BookCard
                 key={book.id}
                 book={book}
@@ -104,10 +125,7 @@ const Index = () => {
         )}
       </main>
 
-      {/* Search Panel */}
       <SearchPanel open={searchOpen} onClose={() => setSearchOpen(false)} />
-
-      {/* Book Modal */}
       <BookModal
         book={selectedBook}
         open={modalOpen}
