@@ -8,6 +8,7 @@ import StatusFilter from "@/components/StatusFilter";
 import SearchPanel from "@/components/SearchPanel";
 import SortSelect, { SortOption } from "@/components/SortSelect";
 import ThemeToggle from "@/components/ThemeToggle";
+import InstallPrompt from "@/components/InstallPrompt";
 import { Button } from "@/components/ui/button";
 import { Search, BookOpen } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
@@ -134,6 +135,7 @@ const Index = () => {
           setSelectedBook(null);
         }}
       />
+      <InstallPrompt />
     </div>
   );
 };
