@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { searchGoogleBooks, saveBook } from "@/lib/api";
-import { GoogleBooksVolume, BookStatus } from "@/types/book";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { saveBook, searchGoogleBooks } from "@/lib/api";
+import { BookStatus, GoogleBooksVolume } from "@/types/book";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Search, Plus, X } from "lucide-react";
+import { Plus, Search, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface SearchPanelProps {
@@ -37,7 +37,8 @@ const SearchPanel = ({ open, onClose }: SearchPanelProps) => {
       queryClient.invalidateQueries({ queryKey: ["books"] });
       toast({ title: "Book added to library!" });
     },
-    onError: () => toast({ title: "Failed to add book", variant: "destructive" }),
+    onError: () =>
+      toast({ title: "Failed to add book", variant: "destructive" }),
   });
 
   const handleSearch = (e: React.FormEvent) => {
@@ -83,17 +84,20 @@ const SearchPanel = ({ open, onClose }: SearchPanelProps) => {
           {data?.items?.map((volume) => (
             <Card key={volume.id} className="flex gap-4 p-4">
               <div className="h-20 w-14 flex-shrink-0 overflow-hidden rounded bg-muted">
-                {volume.volumeInfo.imageLinks?.thumbnail ? (
-                  <img
-                    src={volume.volumeInfo.imageLinks.thumbnail}
-                    alt={volume.volumeInfo.title}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-[10px] text-muted-foreground p-1 text-center">
-                    No cover
-                  </div>
-                )}
+                {volume.volumeInfo.imageLinks?.thumbnail
+                  ? (
+                    <img
+                      src={volume.volumeInfo.imageLinks.thumbnail}
+                      alt={volume.volumeInfo.title}
+                      className="h-full w-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  )
+                  : (
+                    <div className="flex h-full items-center justify-center text-[10px] text-muted-foreground p-1 text-center">
+                      No cover
+                    </div>
+                  )}
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-display text-sm font-semibold leading-tight line-clamp-1">
@@ -110,7 +114,8 @@ const SearchPanel = ({ open, onClose }: SearchPanelProps) => {
               </div>
               <Button
                 size="sm"
-                onClick={() => addMutation.mutate(volume)}
+                onClick={() =>
+                  addMutation.mutate(volume)}
                 disabled={addMutation.isPending}
                 className="flex-shrink-0"
               >

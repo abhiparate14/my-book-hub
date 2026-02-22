@@ -85,6 +85,7 @@ const BookModal = ({ book, open, onClose }: BookModalProps) => {
               src={book.thumbnailUrl}
               alt={book.title}
               className="h-32 w-auto rounded-md object-cover shadow"
+              referrerPolicy="no-referrer"
             />
           )}
           <div className="flex-1 space-y-4">
