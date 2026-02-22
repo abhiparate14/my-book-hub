@@ -21,6 +21,22 @@ export default defineConfig(({ mode }) => ({
       includeAssets: ["favicon.ico", "placeholder.svg"],
       workbox: {
         navigateFallbackDenylist: [/^\/~oauth/],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/books\.google\.com\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "google-books-images",
+              expiration: {
+                maxEntries: 500,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+        ],
       },
       manifest: {
         name: "Virtual Library Manager",
