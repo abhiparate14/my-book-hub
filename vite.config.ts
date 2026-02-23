@@ -18,7 +18,11 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "placeholder.svg"],
+      includeAssets: [
+        "favicon.ico",
+        "apple-touch-icon-180x180.png",
+        "placeholder.svg",
+      ],
       workbox: {
         navigateFallbackDenylist: [/^\/~oauth/],
         runtimeCaching: [
@@ -63,6 +67,11 @@ export default defineConfig(({ mode }) => ({
             sizes: "512x512",
             type: "image/png",
             purpose: "any maskable",
+          },
+          {
+            src: "/apple-touch-icon-180x180.png",
+            sizes: "180x180",
+            type: "image/png",
           },
         ],
       },
