@@ -13,6 +13,9 @@ interface SearchPanelProps {
   onClose: () => void;
 }
 
+const normalizeThumbnailUrl = (url?: string) =>
+  url ? url.replace(/^http:\/\//i, "https://") : "";
+
 const SearchPanel = ({ open, onClose }: SearchPanelProps) => {
   const [query, setQuery] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -30,7 +33,9 @@ const SearchPanel = ({ open, onClose }: SearchPanelProps) => {
         googleBooksId: volume.id,
         title: volume.volumeInfo.title,
         authors: volume.volumeInfo.authors || [],
-        thumbnailUrl: volume.volumeInfo.imageLinks?.thumbnail || "",
+        thumbnailUrl: normalizeThumbnailUrl(
+          volume.volumeInfo.imageLinks?.thumbnail,
+        ),
         status: "want_to_read" as BookStatus,
       }),
     onSuccess: () => {
@@ -84,10 +89,12 @@ const SearchPanel = ({ open, onClose }: SearchPanelProps) => {
           {data?.items?.map((volume) => (
             <Card key={volume.id} className="flex gap-4 p-4">
               <div className="h-20 w-14 flex-shrink-0 overflow-hidden rounded bg-muted">
-                {volume.volumeInfo.imageLinks?.thumbnail
+                {normalizeThumbnailUrl(volume.volumeInfo.imageLinks?.thumbnail)
                   ? (
                     <img
-                      src={volume.volumeInfo.imageLinks.thumbnail}
+                      src={normalizeThumbnailUrl(
+                        volume.volumeInfo.imageLinks?.thumbnail,
+                      )}
                       alt={volume.volumeInfo.title}
                       className="h-full w-full object-cover"
                       referrerPolicy="no-referrer"

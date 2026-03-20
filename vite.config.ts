@@ -18,6 +18,9 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
+      devOptions: {
+        enabled: true,
+      },
       includeAssets: [
         "favicon.ico",
         "apple-touch-icon-180x180.png",
@@ -27,7 +30,9 @@ export default defineConfig(({ mode }) => ({
         navigateFallbackDenylist: [/^\/~oauth/],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/books\.google\.com\/.*/i,
+            // Google Books cover URLs can come from multiple hosts and schemes.
+            urlPattern:
+              /^https?:\/\/(books\.google\.com|books\.googleusercontent\.com)\/.*/i,
             handler: "CacheFirst",
             options: {
               cacheName: "google-books-images",
